@@ -38,7 +38,7 @@ I then used the `cat` command to read the contents of the file:
 cat <filename>
 ```
 
-The output contained the password required to log into **Level 1**.
+The output contained the password required to log into **Level 1** which was 6y2kwnwK6grgvwvpvLaa2T1cpFEKOhNR
 
 ## 🧠 What I Learned
 
@@ -80,13 +80,14 @@ cat ./-
 
 Here, `./` tells the shell that `-` refers to a file in the current directory.
 
-The command displayed the password required for **Level 2**.
+The command displayed the password required for **Level 2** which was PK8fYLZg2hnHSz83plBL1iEPKdD3QToB
 
 ## 🧠 What I Learned
 
 - `-` can have a special meaning when used with Linux commands.
 - `./` can be used to explicitly reference a file in the current directory.
 - Special filenames may require a different way of accessing them.
+
 
 ---
 
@@ -124,86 +125,5 @@ cat "--file with spaces--"
 
 The quotation marks tell the shell to treat the entire filename as a single argument.
 
-The command displayed the password required for **Level 3**.
+The command displayed the password required for **Level 3** which was 7ZZ2LFrykP2zEyvBl4m3clcL7tGYJPME
 
-## 🧠 What I Learned
-
-- Spaces are normally used by the shell to separate arguments.
-- Filenames containing spaces should be quoted.
-- Double quotes allow the shell to treat the entire filename as one argument.
-
----
-
-# 📌 Summary
-
-| Level | Challenge | Technique |
-|-------|-----------|-----------|
-| 0 → 1 | Find the password in a file | `ls`, `cat` |
-| 1 → 2 | Filename is `-` | `cat ./-` |
-| 2 → 3 | Filename contains spaces | `cat "--file with spaces--"` |
-
----
-
-# 🚀 Progress
-
-- [x] Level 0 → 1
-- [x] Level 1 → 2
-- [x] Level 2 → 3
-- [ ] Level 3 → 4
-- [ ] Level 4 → 5
-- [ ] Level 5 → 6
-- [ ] Level 6 → 7
-- [ ] Level 7 → 8
-- [ ] Level 8 → 9
-- [ ] Level 9 → 10
-- [ ] Level 10 → 11
-- [ ] Level 11 → 12
-- [ ] Level 12 → 13
-- [ ] Level 13 → 14
-- [ ] Level 14 → 15
-- [ ] Level 15 → 16
-- [ ] Level 16 → 17
-- [ ] Level 17 → 18
-- [ ] Level 18 → 19
-- [ ] Level 19 → 20
-- [ ] Level 20 → 21
-- [ ] Level 21 → 22
-- [ ] Level 22 → 23
-- [ ] Level 23 → 24
-- [ ] Level 24 → 25
-- [ ] Level 25 → 26
-- [ ] Level 26 → 27
-- [ ] Level 27 → 28
-- [ ] Level 28 → 29
-- [ ] Level 29 → 30
-- [ ] Level 30 → 31
-- [ ] Level 31 → 32
-- [ ] Level 32 → 33
-- [ ] Level 33 → 34
-
----
-
-# 🧠 Skills Practiced
-
-So far, I have practiced:
-
-- Linux command line
-- File and directory navigation
-- `ls`
-- `cat`
-- Handling special filenames
-- Handling filenames containing spaces
-- Understanding shell arguments
-- Basic Linux filesystem concepts
-
----
-
-## ⚠️ Disclaimer
-
-This repository contains my personal learning notes from the **OverTheWire Bandit** wargame.
-
-Passwords are intentionally not stored in this repository. The focus is on documenting the techniques and concepts learned while solving each challenge.
-
----
-
-**More levels will be added as I progress. 🚀**
