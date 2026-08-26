@@ -574,3 +574,168 @@ After finding the file, I used:
 ```bash
 cat /var/lib/dpkg/info/bandit7.password
 ```
+
+
+# Level 7 → 8
+
+## 🎯 Objective
+
+The password for the next level is stored in the file `data.txt` next to the word `millionth`.
+
+## 🔎 Enumeration
+
+I first checked the contents of the current directory using:
+
+```bash
+ls
+```
+
+I found the file:
+
+```text
+data.txt
+```
+
+Since the challenge specified that the password was located next to the word `millionth`, I needed to search the file for that specific word.
+
+## 💡 Solution
+
+I used the `grep` command to search for the word `millionth` inside `data.txt`:
+
+```bash
+grep "millionth" data.txt
+```
+
+The command searched through `data.txt` and returned the line containing the word `millionth` along with the password next to it.
+
+The output contained the password for **Level 8**:
+
+```text
+R1ljMayciFxbnUokuQmJFw6QC9VKtub
+```
+
+## 🔑 Password
+
+```text
+VR1ljMayciFxbnUokuQmJFw6QC9VKtub
+```
+
+## 🧠 What I Learned
+
+- `grep` is used to search for text inside files.
+- `grep "word" filename` searches for a specific word or pattern in a file.
+- Searching for a known keyword is much faster than manually reading a large file.
+- Linux command-line tools can be combined with simple search patterns to quickly locate information.
+
+---
+
+## 📌 Key Takeaway
+
+When a file contains a large amount of text and I know a specific word associated with the information I need, `grep` can quickly locate the relevant line.
+
+The main command I used was:
+
+```bash
+grep "millionth" data.txt
+```
+
+# Level 8 → 9
+
+## 🎯 Objective
+
+The password for the next level is stored in the file `data.txt` and is the only line that occurs exactly once.
+
+## 🔎 Enumeration
+
+I first checked the contents of the current directory:
+
+```bash
+ls
+```
+
+I found the file:
+
+```text
+data.txt
+```
+
+The file contained many lines of text, with most of the lines appearing more than once.
+
+Instead of manually checking every line, I needed a way to identify the line that occurred only once.
+
+## 💡 Solution
+
+I used the pipe (`|`) operator together with the `sort` and `uniq` commands:
+
+```bash
+sort data.txt | uniq -u
+```
+
+The command works in two steps.
+
+### 1. Sort the file
+
+```bash
+sort data.txt
+```
+
+This sorts all the lines in `data.txt` alphabetically.
+
+Sorting is important because `uniq` only compares adjacent lines. By sorting the file first, identical lines are placed next to each other.
+
+### 2. Find the unique line
+
+The sorted output is passed to `uniq` using the pipe operator:
+
+```bash
+|
+```
+
+I used:
+
+```bash
+uniq -u
+```
+
+The `-u` option tells `uniq` to display only lines that occur exactly once.
+
+The complete command was:
+
+```bash
+sort data.txt | uniq -u
+```
+
+This returned the password for **Level 9**:
+
+```text
+EjmOSvuAu7sGAHqHVcBDPirRe9T03kxl
+```
+
+## 🔑 Password
+
+```text
+EjmOSvuAu7sGAHqHVcBDPirRe9T03kxl
+```
+
+## 🧠 What I Learned
+
+- `sort` sorts lines of text.
+- `uniq` is used to identify or remove repeated lines.
+- `uniq -u` displays only lines that occur exactly once.
+- `|` is called the pipe operator.
+- The pipe sends the output of one command directly into another command.
+- `uniq` works on adjacent duplicate lines, which is why sorting the data first is important.
+
+---
+
+## 📌 Key Takeaway
+
+The important concept in this level was combining multiple Linux commands using a pipe.
+
+The command I used was:
+
+```bash
+sort data.txt | uniq -u
+```
+
+Here, the output of `sort` becomes the input for `uniq`, allowing me to quickly find the only line that appears once in the file.
