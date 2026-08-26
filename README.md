@@ -250,4 +250,327 @@ xzTXq1rDJQVVAzdv5cHq1TQytTWufAMq
 
 ---
 
+# Level 4 → 5
 
+## 🎯 Objective
+
+Find the password for the next level. The password was stored in one of the files inside the `inhere` directory.
+
+## 🔎 Enumeration
+
+I was given a directory named `inhere`, so I first changed into that directory using:
+
+```bash
+cd inhere
+```
+
+I then listed the files using:
+
+```bash
+ls
+```
+
+This showed 10 files:
+
+```text
+-file00
+-file01
+-file02
+-file03
+-file04
+-file05
+-file06
+-file07
+-file08
+-file09
+```
+
+The password was stored in one of these files.
+
+## 🔬 Initial Approach
+
+I first tried reading the first file:
+
+```bash
+cat ./"-file00"
+```
+
+However, the output appeared to be gibberish rather than readable text.
+
+This suggested that the file might contain binary data instead of normal ASCII text.
+
+## 💡 Solution
+
+Instead of manually checking every file with `cat`, I decided to determine the type of each file using the `file` command:
+
+```bash
+file -- *
+```
+
+Here, `*` is a wildcard that matches all files in the current directory.
+
+The `--` tells the command that everything after it should be treated as filenames rather than command options. This was important because all the filenames started with `-`.
+
+The command displayed the file type of each file.
+
+After checking the results, I found that:
+
+```text
+-file07
+```
+
+contained ASCII text while the other files contained different types of data.
+
+I then read the contents of `-file07`:
+
+```bash
+cat ./"-file07"
+```
+
+This displayed the password for **Level 5**.
+
+## 🔑 Password
+
+```text
+6C7h9GD8M6ai5nr7wo1RonrzFjj9yIrG
+```
+
+## 🧠 What I Learned
+
+- `cd` is used to change directories.
+- `ls` is used to list files in a directory.
+- `file` can be used to determine the type of data stored in a file.
+- `*` is a wildcard that can match multiple files.
+- `--` tells a command that the following arguments should be treated as filenames rather than options.
+- Files containing binary data may appear as gibberish when displayed using `cat`.
+- Instead of manually opening every file, identifying the file type can make the search much more efficient.
+
+---
+
+## 📌 Key Takeaway
+
+When multiple files are present and only one contains readable text, checking their file types first can quickly narrow down the correct file.
+
+The main command I used was:
+
+```bash
+file -- *
+```
+
+Then I read the ASCII file using:
+
+```bash
+cat ./"-file07"
+```
+
+
+# Level 5 → 6
+
+## 🎯 Objective
+
+The password for the next level is stored in a file somewhere under the `inhere` directory.
+
+The file has all of the following properties:
+
+- Human-readable
+- Exactly 1033 bytes in size
+- Not executable
+
+## 🔎 Enumeration
+
+I first changed into the `inhere` directory:
+
+```bash
+cd inhere
+```
+
+I then used `ls` to inspect the contents:
+
+```bash
+ls
+```
+
+There were multiple directories inside `inhere`, so manually checking every directory and file would be inefficient.
+
+## 💡 Solution
+
+Since the challenge gave a specific file size, I used the `find` command to search recursively for regular files that were exactly **1033 bytes** in size:
+
+```bash
+find . -type f -size 1033c
+```
+
+The command can be broken down as follows:
+
+- `find .` — searches from the current directory recursively.
+- `-type f` — searches only for regular files.
+- `-size 1033c` — searches for files that are exactly 1033 bytes in size.
+- `c` — specifies that the size is measured in bytes.
+
+The command returned the path of the file:
+
+```text
+./maybehere07/.file2
+```
+
+I then used `cat` to display its contents:
+
+```bash
+cat ./maybehere07/.file2
+```
+
+This displayed the password for **Level 6**.
+
+## 🔑 Password
+
+```text
+pXa26xhMWaC2SvDotA4r9EgZkulOeSBW
+```
+
+## 🧠 What I Learned
+
+- `find` can recursively search through directories.
+- `-type f` is used to search for regular files.
+- `-size 1033c` searches for files that are exactly 1033 bytes.
+- A relative path such as `./maybehere07/.file2` can be used to access a file.
+- Using the properties provided by a challenge can make searching through many files much faster.
+
+---
+
+## 📌 Key Takeaway
+
+When a challenge gives specific properties such as file size and file type, `find` can be used to narrow down the search instead of manually checking every file.
+
+The main command I used was:
+
+```bash
+find . -type f -size 1033c
+```
+
+After finding the file, I used:
+
+```bash
+cat ./maybehere07/.file2
+```
+
+
+# Level 6 → 7
+
+## 🎯 Objective
+
+The password for the next level is stored **somewhere on the server** and has all of the following properties:
+
+- Owned by user `bandit7`
+- Owned by group `bandit6`
+- Exactly 33 bytes in size
+
+## 🔎 Initial Enumeration
+
+I first checked the current directory using:
+
+```bash
+ls
+```
+
+I also tried:
+
+```bash
+la
+```
+
+However, there were no useful files in the current directory.
+
+Since the challenge stated that the password was stored **somewhere on the server**, I needed to search beyond the current directory.
+
+## 🔍 Searching the Current Directory
+
+I first tried using `find` from the current directory:
+
+```bash
+find -type f -size 33c -user bandit7 -group bandit6
+```
+
+This did not return any results.
+
+The reason is that `find` was only searching from the current directory, while the target file could be located anywhere on the server.
+
+## 💡 Searching the Entire Server
+
+I then changed the starting location of the search to `/`, which represents the root of the filesystem:
+
+```bash
+find / -type f -size 33c -user bandit7 -group bandit6
+```
+
+This searched the entire server.
+
+However, the command produced many `Permission denied` errors because the `bandit6` user does not have permission to access certain directories.
+
+The output was difficult to read because of all the permission errors.
+
+## 🛠️ Suppressing Permission Errors
+
+I redirected the error output to `/dev/null`:
+
+```bash
+find / -type f -user bandit7 -group bandit6 -size 33c 2>/dev/null
+```
+
+The command can be broken down as follows:
+
+- `find /` — searches from the root directory, covering the entire filesystem.
+- `-type f` — searches only for regular files.
+- `-user bandit7` — searches for files owned by the `bandit7` user.
+- `-group bandit6` — searches for files owned by the `bandit6` group.
+- `-size 33c` — searches for files exactly 33 bytes in size.
+- `2>` — redirects standard error.
+- `/dev/null` — discards the redirected error messages.
+
+The command returned:
+
+```text
+/var/lib/dpkg/info/bandit7.password
+```
+
+## 🔑 Retrieving the Password
+
+I used `cat` to read the file:
+
+```bash
+cat /var/lib/dpkg/info/bandit7.password
+```
+
+This displayed the password for **Level 7**:
+
+```text
+Bmnnvf82KzQlfxgAI2d1zYbr1u9pr3E3
+```
+
+## 🧠 What I Learned
+
+- `find` can search the filesystem using multiple conditions.
+- `/` represents the root of the Linux filesystem.
+- `-user` can search for files owned by a specific user.
+- `-group` can search for files owned by a specific group.
+- `-size 33c` searches for files exactly 33 bytes in size.
+- Some directories cannot be accessed without sufficient permissions.
+- `2>/dev/null` can be used to suppress error messages sent to standard error.
+- Searching from `/` allows `find` to search the entire filesystem.
+
+---
+
+## 📌 Key Takeaway
+
+When a file could be located anywhere on the server, searching from the root directory is more appropriate than searching only from the current directory.
+
+The final command I used was:
+
+```bash
+find / -type f -user bandit7 -group bandit6 -size 33c 2>/dev/null
+```
+
+After finding the file, I used:
+
+```bash
+cat /var/lib/dpkg/info/bandit7.password
+```
