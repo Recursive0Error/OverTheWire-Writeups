@@ -1038,3 +1038,236 @@ cat data.txt | tr 'A-Za-z' 'N-ZA-Mn-za-m'
 ```
 
 This decoded the contents of `data.txt` and revealed the password for the next level.
+
+
+# Level 12 → 13
+
+## 🎯 Objective
+
+The password for the next level is stored in the file `data.txt`, which is a hexdump of a file that has been repeatedly compressed.
+
+The file uses multiple layers of compression and different archive formats, so I needed to repeatedly identify, rename, decompress, and check the resulting file.
+
+## 📁 Creating a Working Directory
+
+Since I would be modifying and decompressing the file multiple times, I created a temporary working directory using:
+
+```bash
+mktemp -d
+```
+
+I then copied the original `data.txt` file into the temporary directory:
+
+```bash
+cp data.txt /tmp/<temporary-directory>/
+```
+
+I changed into the temporary directory:
+
+```bash
+cd /tmp/<temporary-directory>
+```
+
+This allowed me to work on a copy of the file without modifying the original.
+
+---
+
+## 🔄 Step 1 — Convert the Hexdump
+
+The `data.txt` file was a hexdump rather than the actual binary file.
+
+I used `xxd` with the `-r` option to reverse the hexdump and recreate the binary file:
+
+```bash
+xxd -r data.txt data.bin
+```
+
+Here:
+
+- `xxd` is used to create and manipulate hexadecimal dumps.
+- `-r` means **reverse**, converting the hexdump back into binary data.
+- `data.txt` is the input hexdump.
+- `data.bin` is the resulting binary file.
+
+---
+
+## 🔍 Step 2 — Identify the File Type
+
+I then used the `file` command to determine what type of data was stored in the binary file:
+
+```bash
+file data.bin
+```
+
+The output showed the compression or archive format of the file.
+
+---
+
+## 🗜️ Step 3 — Decompress the File
+
+The file was repeatedly compressed using different compression formats.
+
+Whenever I identified the file type using `file`, I renamed the file with the appropriate extension and then decompressed or extracted it.
+
+### Gzip
+
+If the file was identified as Gzip, I renamed it:
+
+```bash
+mv data.bin data.gz
+```
+
+Then decompressed it:
+
+```bash
+gzip -d data.gz
+```
+
+I then checked the resulting file again:
+
+```bash
+file data
+```
+
+### Bzip2
+
+If the file was identified as Bzip2, I renamed it:
+
+```bash
+mv data data.bz2
+```
+
+Then decompressed it using:
+
+```bash
+bzip2 -d data.bz2
+```
+
+I checked the resulting file again:
+
+```bash
+file data
+```
+
+### Tar Archive
+
+If the file was identified as a tar archive, I renamed it:
+
+```bash
+mv data data.tar
+```
+
+Then extracted it using:
+
+```bash
+tar -xf data.tar
+```
+
+I then checked the extracted file:
+
+```bash
+file data
+```
+
+---
+
+## 🔁 Step 4 — Repeat the Process
+
+The main challenge was that the file had been compressed multiple times.
+
+After every decompression or extraction, I used:
+
+```bash
+file data
+```
+
+to determine the format of the resulting file.
+
+I then performed the appropriate operation based on the file type.
+
+The general process was:
+
+```text
+Hexdump
+   ↓
+xxd -r
+   ↓
+Identify file type
+   ↓
+Rename file
+   ↓
+Decompress / Extract
+   ↓
+Identify file type again
+   ↓
+Repeat
+   ↓
+ASCII text
+```
+
+I continued this process until the final file was identified as ASCII text.
+
+The final output was:
+
+```text
+The password is qQYQiHOBPR8zR61qxYqX45quvihF2uzk
+```
+
+## 🔑 Password
+
+```text
+qQYQiHOBPR8zR61qxYqX45quvihF2uzk
+```
+
+## 🧠 What I Learned
+
+- `mktemp -d` creates a temporary directory with a randomly generated name.
+- `cp` is used to copy files.
+- `mv` can be used to rename files.
+- `xxd -r` converts a hexdump back into binary data.
+- `file` can identify the type of a file.
+- `gzip -d` decompresses Gzip files.
+- `bzip2 -d` decompresses Bzip2 files.
+- `tar -xf` extracts files from a tar archive.
+- A file can have multiple layers of compression.
+- The `file` command is useful for deciding which tool to use next.
+
+---
+
+## 📌 Key Takeaway
+
+This level taught me how to work with files that have been repeatedly compressed using different formats.
+
+Instead of guessing the compression format, I used:
+
+```bash
+file data
+```
+
+after every step to identify the current format.
+
+The overall process was:
+
+```bash
+xxd -r data.txt data.bin
+file data.bin
+```
+
+Then I repeatedly used the appropriate commands such as:
+
+```bash
+mv data.bin data.gz
+gzip -d data.gz
+```
+
+```bash
+mv data data.bz2
+bzip2 -d data.bz2
+```
+
+```bash
+mv data data.tar
+tar -xf data.tar
+```
+
+until I reached the final ASCII text containing the password.
