@@ -739,3 +739,302 @@ sort data.txt | uniq -u
 ```
 
 Here, the output of `sort` becomes the input for `uniq`, allowing me to quickly find the only line that appears once in the file.
+
+# Level 9 → 10
+
+## 🎯 Objective
+
+The password for the next level is stored in the file `data.txt` in one of the few human-readable strings, preceded by several `=` characters.
+
+## 🔎 Enumeration
+
+I first used `cat` to view the contents of `data.txt`:
+
+```bash
+cat data.txt
+```
+
+The output contained a large amount of non-readable or binary-looking data, making it difficult to identify the password directly.
+
+## 💡 Solution
+
+Since the file contained binary data along with some readable text, I used the `strings` command:
+
+```bash
+strings data.txt
+```
+
+The `strings` command extracts sequences of printable characters from a file. This made the human-readable portions of `data.txt` much easier to examine.
+
+However, there were still many strings in the output. The challenge specified that the password was preceded by several `=` characters.
+
+Therefore, I used `grep` together with the pipe operator:
+
+```bash
+strings data.txt | grep "==="
+```
+
+The command returned:
+
+```text
+\========== the
+\========== password
+Y========== is
+\========== B0s2khmbT9u0geKuOoVGW3JZKhndE3BG
+```
+
+The line containing the password was:
+
+```text
+\========== B0s2khmbT9u0geKuOoVGW3JZKhndE3BG
+```
+
+Therefore, the password was:
+
+```text
+B0s2khmbT9u0geKuOoVGW3JZKhndE3BG
+```
+
+## 🔑 Password
+
+```text
+B0s2khmbT9u0geKuOoVGW3JZKhndE3BG
+```
+
+## 🧠 What I Learned
+
+- `cat` can display the contents of a file, but it is not always useful for binary data.
+- `strings` extracts human-readable sequences of characters from binary files.
+- `grep` can filter text based on a specific pattern.
+- `|` is the pipe operator, which sends the output of one command as input to another command.
+- Combining commands can make searching through large amounts of data much easier.
+
+---
+
+## 📌 Key Takeaway
+
+When a file contains mostly non-readable data but the challenge mentions that some human-readable strings are present, `strings` can be used to extract those readable portions.
+
+I then used `grep` to filter the output for strings containing `===`:
+
+```bash
+strings data.txt | grep "==="
+```
+
+This allowed me to quickly locate the line containing the password.
+
+
+# Level 10 → 11
+
+## 🎯 Objective
+
+The password for the next level is stored in the file `data.txt`, which contains Base64 encoded data.
+
+## 🔎 Enumeration
+
+I first checked the contents of the current directory:
+
+```bash
+ls
+```
+
+I found the file:
+
+```text
+data.txt
+```
+
+I then viewed the contents of the file:
+
+```bash
+cat data.txt
+```
+
+The contents were not in a normal readable format. The challenge stated that the data was **Base64 encoded**, so I needed to decode it.
+
+## 💡 Solution
+
+I used the `base64` command with the `-d` option:
+
+```bash
+base64 -d data.txt
+```
+
+Here:
+
+- `base64` is a Linux command used to encode or decode Base64 data.
+- `-d` stands for **decode**.
+- `data.txt` is the file containing the encoded data.
+
+The command decoded the contents of `data.txt` and gave the following output:
+
+```text
+The password is pYfOY6HwUsDj5rL9UvyhU7MCmv8vN5Ro
+```
+
+Therefore, the password for **Level 11** was:
+
+```text
+pYfOY6HwUsDj5rL9UvyhU7MCmv8vN5Ro
+```
+
+## 🔑 Password
+
+```text
+pYfOY6HwUsDj5rL9UvyhU7MCmv8vN5Ro
+```
+
+## 🧠 What I Learned
+
+- Base64 is an encoding method used to represent data using a set of ASCII characters.
+- Base64 is **encoding, not encryption**.
+- The `base64` command can be used to decode Base64 encoded data.
+- The `-d` option tells the command to decode the input.
+- Encoded data can often be identified from the characters it contains and the context provided by the challenge.
+
+---
+
+## 📌 Key Takeaway
+
+When a file contains Base64 encoded data, it can be decoded using:
+
+```bash
+base64 -d data.txt
+```
+
+The `-d` option stands for **decode**, and the resulting output revealed the password for the next level.
+
+# Level 11 → 12
+
+## 🎯 Objective
+
+The password for the next level is stored in the file `data.txt`, where all lowercase (`a-z`) and uppercase (`A-Z`) letters have been rotated by 13 positions.
+
+This type of substitution is called **ROT13**.
+
+## 🔎 Enumeration
+
+I first checked the contents of the current directory:
+
+```bash
+ls
+```
+
+I found the file:
+
+```text
+data.txt
+```
+
+I then viewed the file:
+
+```bash
+cat data.txt
+```
+
+The contents were not directly readable because the letters had been encoded using ROT13.
+
+## 💡 Solution
+
+To decode the ROT13 text, I used the `tr` command together with the pipe operator:
+
+```bash
+cat data.txt | tr 'A-Za-z' 'N-ZA-Mn-za-m'
+```
+
+The command works in two steps.
+
+### 1. Read the file
+
+```bash
+cat data.txt
+```
+
+This reads the contents of `data.txt`.
+
+### 2. Translate the characters
+
+The output of `cat` is passed to `tr` using the pipe operator:
+
+```bash
+|
+```
+
+The `tr` command stands for **translate** and replaces characters according to the character sets provided.
+
+I used:
+
+```bash
+tr 'A-Za-z' 'N-ZA-Mn-za-m'
+```
+
+The first set:
+
+```text
+A-Za-z
+```
+
+represents all uppercase and lowercase English letters.
+
+The second set:
+
+```text
+N-ZA-Mn-za-m
+```
+
+represents the letters shifted by 13 positions.
+
+For example:
+
+```text
+A → N
+B → O
+C → P
+...
+N → A
+O → B
+P → C
+```
+
+Because ROT13 is symmetrical, applying the same transformation again decodes the text.
+
+The command returned:
+
+```text
+The password is GROozWPO8QyN0mGrjUkID0WCYkZiQxrN
+```
+
+Therefore, the password for **Level 12** was:
+
+```text
+GROozWPO8QyN0mGrjUkID0WCYkZiQxrN
+```
+
+## 🔑 Password
+
+```text
+GROozWPO8QyN0mGrjUkID0WCYkZiQxrN
+```
+
+## 🧠 What I Learned
+
+- ROT13 is a substitution cipher that rotates each letter by 13 positions.
+- `tr` is a Linux command used to translate or replace characters.
+- `A-Za-z` represents uppercase and lowercase English letters.
+- `N-ZA-Mn-za-m` represents the ROT13 character mapping.
+- The pipe operator `|` sends the output of one command as input to another command.
+- ROT13 is symmetrical, meaning the same transformation can be used to encode and decode the text.
+
+---
+
+## 📌 Key Takeaway
+
+When text has been encoded using ROT13, the `tr` command can be used to translate each letter back to its original character.
+
+The command I used was:
+
+```bash
+cat data.txt | tr 'A-Za-z' 'N-ZA-Mn-za-m'
+```
+
+This decoded the contents of `data.txt` and revealed the password for the next level.
