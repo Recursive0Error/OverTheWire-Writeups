@@ -1271,3 +1271,156 @@ tar -xf data.tar
 ```
 
 until I reached the final ASCII text containing the password.
+
+# Level 13 → 14
+
+## 🎯 Objective
+
+The password for the next level is stored in:
+
+```text
+/etc/bandit_pass/bandit14
+```
+
+It can only be read by the `bandit14` user.
+
+Instead of directly giving the password, this level provides a **private SSH key** that can be used to log into the `bandit14` account.
+
+## 🔎 Enumeration
+
+I first listed the files in my home directory:
+
+```bash
+ls
+```
+
+I found an SSH private key along with a hint file.
+
+The private key could be used to authenticate as `bandit14`.
+
+## 🔐 Using the SSH Key
+
+I first tried to connect using the private key:
+
+```bash
+ssh -4 -i temp_key bandit14@bandit.labs.overthewire.org -p 2220
+```
+
+However, SSH returned the following error:
+
+```text
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@         WARNING: UNPROTECTED PRIVATE KEY FILE!          @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+Permissions 0664 for 'temp_key' are too open.
+It is required that your private key files are NOT accessible by others.
+This private key will be ignored.
+Load key "temp_key": bad permissions
+```
+
+The error message explained that the permissions of the private key were too open.
+
+The file had permissions:
+
+```text
+0664
+```
+
+This meant that users other than the owner could also access the file.
+
+For security reasons, SSH requires private keys to have sufficiently restrictive permissions.
+
+## 🛠️ Changing File Permissions
+
+I changed the permissions of the private key using:
+
+```bash
+chmod 600 temp_key
+```
+
+The `chmod` command is used to change file permissions.
+
+The permission `600` means:
+
+- Owner → Read and write
+- Group → No permissions
+- Others → No permissions
+
+Therefore, only the owner can access the private key.
+
+## 🔑 Connecting Using the Private Key
+
+After changing the permissions, I ran the SSH command again:
+
+```bash
+ssh -4 -i temp_key bandit14@bandit.labs.overthewire.org -p 2220
+```
+
+This time, the private key was accepted and I successfully logged into the `bandit14` account.
+
+## 🔎 Retrieving the Password
+
+The challenge stated that the password was located at:
+
+```text
+/etc/bandit_pass/bandit14
+```
+
+I used `cat` to read the file:
+
+```bash
+cat /etc/bandit_pass/bandit14
+```
+
+This displayed the password for **Level 14**:
+
+```text
+aaWecNkG4FhxJQxz07uiwzVP6bJiYS65
+```
+
+## 🔑 Password
+
+```text
+aaWecNkG4FhxJQxz07uiwzVP6bJiYS65
+```
+
+## 🧠 What I Learned
+
+- SSH can authenticate users using private keys instead of passwords.
+- The `-i` option specifies the private key file to use.
+- SSH requires private keys to have restrictive permissions.
+- `chmod` is used to change file permissions.
+- `chmod 600` gives the owner read and write permissions while denying access to the group and other users.
+- Error messages can provide useful information about why a command failed.
+- The `-4` option tells SSH to use IPv4.
+- Sensitive files such as private SSH keys should not be accessible to other users.
+
+---
+
+## 📌 Key Takeaway
+
+The main challenge in this level was understanding the SSH private-key permission error.
+
+My first attempt failed because the private key had permissions of `0664`:
+
+```bash
+ssh -4 -i temp_key bandit14@bandit.labs.overthewire.org -p 2220
+```
+
+I fixed the permissions with:
+
+```bash
+chmod 600 temp_key
+```
+
+Then I connected successfully using:
+
+```bash
+ssh -4 -i temp_key bandit14@bandit.labs.overthewire.org -p 2220
+```
+
+Finally, I retrieved the password using:
+
+```bash
+cat /etc/bandit_pass/bandit14
+```
