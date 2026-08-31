@@ -1530,3 +1530,721 @@ pbLYuZtTg4MgaqfJx8jbA9gKKGqM68A7
 ```
 
 The returned string was the password for the next level.
+
+# Level 15 → 16
+
+## 🎯 Objective
+
+The password for the next level can be retrieved by submitting the password of the current level to **port 30001 on localhost using SSL/TLS encryption**.
+
+Unlike the previous level, a normal unencrypted connection using Telnet is not sufficient because the service requires an encrypted TLS connection.
+
+## 🔎 Understanding the Challenge
+
+The previous level required connecting to a service using:
+
+```text
+localhost:30000
+```
+
+However, this level requires connecting to:
+
+```text
+localhost:30001
+```
+
+using **SSL/TLS encryption**.
+
+TLS encrypts the communication between the client and the server.
+
+To create this encrypted connection, I used the OpenSSL command-line tool.
+
+## 💡 Solution
+
+I used the following command:
+
+```bash
+echo "pbLYuZtTg4MgaqfJx8jbA9gKKGqM68A7" | openssl s_client -connect localhost:30001 -ign_eof
+```
+
+This command performs several operations.
+
+### 1. `echo`
+
+```bash
+echo "pbLYuZtTg4MgaqfJx8jbA9gKKGqM68A7"
+```
+
+The `echo` command prints the password from the current level.
+
+The password is:
+
+```text
+pbLYuZtTg4MgaqfJx8jbA9gKKGqM68A7
+```
+
+### 2. Pipe Operator `|`
+
+```bash
+|
+```
+
+The pipe operator sends the output of the command on the left as input to the command on the right.
+
+In this case, it sends the password produced by `echo` directly to `openssl s_client`.
+
+The flow is:
+
+```text
+echo
+  ↓
+Current Level Password
+  ↓
+Pipe |
+  ↓
+openssl s_client
+  ↓
+Encrypted TLS Connection
+  ↓
+Server
+```
+
+### 3. `openssl s_client`
+
+```bash
+openssl s_client
+```
+
+`openssl` is a command-line tool for working with cryptographic protocols and certificates.
+
+The `s_client` command acts as an SSL/TLS client and allows me to establish an encrypted connection to a server.
+
+### 4. `-connect localhost:30001`
+
+```bash
+-connect localhost:30001
+```
+
+This specifies the server and port to connect to.
+
+- `localhost` refers to the current machine.
+- `30001` is the port where the TLS-enabled service is running.
+
+### 5. `-ign_eof`
+
+```bash
+-ign_eof
+```
+
+Normally, when `echo` finishes sending the password, the pipe reaches **EOF (End Of File)**.
+
+The `-ign_eof` option tells `openssl s_client` to ignore the immediate EOF from standard input and keep the connection open long enough to receive the server's response.
+
+This is useful because the server may send its response after the password has been transmitted.
+
+## 🔐 TLS Connection
+
+The command successfully established an encrypted TLS connection:
+
+```text
+Connecting to 127.0.0.1
+CONNECTED
+```
+
+OpenSSL then displayed information about the server's TLS certificate and connection.
+
+One message shown was:
+
+```text
+verify error:num=18:self-signed certificate
+```
+
+This occurred because the server uses a **self-signed certificate**.
+
+A self-signed certificate is not signed by a publicly trusted Certificate Authority, so OpenSSL cannot verify it in the normal way.
+
+For this Bandit challenge, the important part was successfully establishing the encrypted connection to the local service.
+
+The connection used:
+
+```text
+TLSv1.3
+```
+
+## 🔑 Submitting the Password
+
+The current level's password was automatically sent through the encrypted TLS connection:
+
+```text
+pbLYuZtTg4MgaqfJx8jbA9gKKGqM68A7
+```
+
+The server responded:
+
+```text
+Correct!
+kS0Hf0u5HiXFwKMKFqXvPdOTNGGa0X8V
+```
+
+Therefore, the password for **Level 16** was:
+
+```text
+kS0Hf0u5HiXFwKMKFqXvPdOTNGGa0X8V
+```
+
+## 🔑 Password
+
+```text
+kS0Hf0u5HiXFwKMKFqXvPdOTNGGa0X8V
+```
+
+## 🧠 What I Learned
+
+- SSL/TLS is used to encrypt communication between a client and a server.
+- `openssl s_client` can be used to establish an SSL/TLS connection from the command line.
+- `-connect` specifies the host and port of the server.
+- The pipe operator `|` sends the output of one command as input to another command.
+- `echo` can be used to automatically provide input to another command.
+- `-ign_eof` prevents `openssl s_client` from immediately closing the connection when standard input reaches EOF.
+- A self-signed certificate is not signed by a publicly trusted Certificate Authority.
+- TLS certificates are used as part of establishing secure connections.
+
+---
+
+## 📌 Key Takeaway
+
+This level was similar to the previous networking challenge, but instead of using an unencrypted Telnet connection, the service required SSL/TLS encryption.
+
+The command I used was:
+
+```bash
+echo "pbLYuZtTg4MgaqfJx8jbA9gKKGqM68A7" | openssl s_client -connect localhost:30001 -ign_eof
+```
+
+The password was sent through an encrypted TLS connection, and the server responded with:
+
+```text
+Correct!
+kS0Hf0u5HiXFwKMKFqXvPdOTNGGa0X8V
+```
+
+This introduced me to using OpenSSL and interacting with services that require encrypted network communication.
+
+# Level 16 → 17
+
+## 🎯 Objective
+
+The credentials for the next level can be retrieved by submitting the password of the current level to a service running on **localhost**.
+
+The service is listening on a port in the range:
+
+```text
+31000 - 32000
+```
+
+The challenge required me to:
+
+1. Find which ports have a server listening on them.
+2. Identify which of those services use SSL/TLS.
+3. Submit the current password to the SSL/TLS services.
+4. Find the server that provides the credentials for the next level.
+
+Some of the other servers simply echo back whatever data is sent to them.
+
+## 🔎 Scanning for Open Ports
+
+I used Nmap to scan the specified range of ports:
+
+```bash
+nmap -sV -p 31000-32000 localhost
+```
+
+### Command Breakdown
+
+```bash
+nmap
+```
+
+Nmap is a network scanning tool that can be used to discover hosts, open ports, and services.
+
+```bash
+-sV
+```
+
+This enables **service version detection**. Nmap attempts to determine what service is running on each open port.
+
+```bash
+-p 31000-32000
+```
+
+This tells Nmap to scan all ports from `31000` to `32000`.
+
+```bash
+localhost
+```
+
+This scans the current machine.
+
+## 📊 Scan Results
+
+The scan returned the following open ports:
+
+```text
+PORT      STATE SERVICE     VERSION
+31046/tcp open  echo
+31518/tcp open  ssl/echo
+31691/tcp open  echo
+31790/tcp open  ssl/unknown
+31960/tcp open  echo
+```
+
+Most of the services were identified as regular `echo` services.
+
+However, two ports were identified as using SSL/TLS:
+
+```text
+31518/tcp
+31790/tcp
+```
+
+Therefore, these were the two ports I needed to investigate further.
+
+---
+
+## 🔐 Testing Port 31518
+
+I first submitted the current password to port `31518` using `openssl s_client`:
+
+```bash
+echo "kS0Hf0u5HiXFwKMKFqXvPdOTNGGa0X8V" | openssl s_client -connect localhost:31518 -ign_eof
+```
+
+The command works as follows:
+
+```text
+echo
+  ↓
+Current password
+  ↓
+Pipe operator |
+  ↓
+openssl s_client
+  ↓
+Encrypted TLS connection
+  ↓
+localhost:31518
+```
+
+However, this service simply returned the same string that I sent.
+
+This indicated that the service was an **SSL/TLS echo service** and was not the service that provided the next credentials.
+
+---
+
+## 🔐 Testing Port 31790
+
+I then tested the second SSL/TLS port:
+
+```bash
+echo "kS0Hf0u5HiXFwKMKFqXvPdOTNGGa0X8V" | openssl s_client -connect localhost:31790 -ign_eof
+```
+
+This time, the service responded with an **OpenSSH private key** instead of simply echoing the password.
+
+The private key is used as the credential for the next level.
+
+---
+
+## 🔑 Next-Level Credential
+
+The service running on:
+
+```text
+localhost:31790
+```
+
+returned an OpenSSH private key.
+
+Unlike previous levels, the next credential was not a normal password. Instead, I received a private SSH key that can be used to authenticate as the next Bandit user.
+
+The private key can be saved to a file and used with SSH in the following way:
+
+```bash
+ssh -i <private_key_file> bandit17@bandit.labs.overthewire.org -p 2220
+```
+
+The private key file must have restrictive permissions before SSH will accept it.
+
+For example:
+
+```bash
+chmod 600 <private_key_file>
+```
+
+Then it can be used for authentication.
+
+## 🧠 What I Learned
+
+- `nmap` can be used to scan for open ports.
+- `-p` specifies the port or port range to scan.
+- `-sV` enables service and version detection.
+- Multiple services can be running on different ports on the same machine.
+- `echo` services simply send back the data they receive.
+- `ssl/echo` indicates an echo service protected by SSL/TLS.
+- `openssl s_client` can be used to test services that require SSL/TLS.
+- Not every SSL/TLS service provides the desired result, so individual services may need to be tested.
+- SSH private keys can be used instead of passwords for authentication.
+
+---
+
+## 📌 Key Takeaway
+
+The main strategy for this level was to first narrow down the possible services instead of manually testing all 1001 ports.
+
+I scanned the port range using:
+
+```bash
+nmap -sV -p 31000-32000 localhost
+```
+
+This revealed two SSL/TLS services:
+
+```text
+31518
+31790
+```
+
+The first SSL/TLS service on port `31518` simply echoed my password back.
+
+I then tested port `31790`:
+
+```bash
+echo "kS0Hf0u5HiXFwKMKFqXvPdOTNGGa0X8V" | openssl s_client -connect localhost:31790 -ign_eof
+```
+
+This service returned an **OpenSSH private key**, which could then be used as the credential to access **Level 17**.
+
+# Level 17 → 18
+
+## 🎯 Objective
+
+There are two files in the home directory:
+
+```text
+passwords.old
+passwords.new
+```
+
+The password for the next level is stored in `passwords.new` and is the only line that has changed between `passwords.old` and `passwords.new`.
+
+Therefore, I needed to compare the two files and identify the changed line.
+
+## 🔎 Enumeration
+
+I first listed the files in the home directory:
+
+```bash
+ls
+```
+
+This showed the following files:
+
+```text
+passwords.old
+passwords.new
+```
+
+Since both files contained mostly identical lines, manually reading and comparing every line would be inefficient.
+
+## 💡 Solution
+
+I used the `diff` command to compare the two files:
+
+```bash
+diff passwords.new passwords.old
+```
+
+The `diff` command compares two files and displays the differences between them.
+
+The output was:
+
+```text
+42c42
+< OQxXZjELndr90zuhOTDYBEomI0SZITXI
+---
+> qOg5pVOjPx9x9VccyYBADiT4xxyoUB8D
+```
+
+## 🔍 Understanding the Output
+
+The first line:
+
+```text
+42c42
+```
+
+indicates that line `42` in one file differs from line `42` in the other file.
+
+Since I used:
+
+```bash
+diff passwords.new passwords.old
+```
+
+the first file is:
+
+```text
+passwords.new
+```
+
+and the second file is:
+
+```text
+passwords.old
+```
+
+The symbols in the output mean:
+
+```text
+<  Line from the first file
+>  Line from the second file
+```
+
+Therefore:
+
+```text
+< OQxXZjELndr90zuhOTDYBEomI0SZITXI
+```
+
+is the line from:
+
+```text
+passwords.new
+```
+
+And:
+
+```text
+> qOg5pVOjPx9x9VccyYBADiT4xxyoUB8D
+```
+
+is the line from:
+
+```text
+passwords.old
+```
+
+Since the challenge stated that the password is stored in `passwords.new`, the password for **Level 18** was:
+
+```text
+OQxXZjELndr90zuhOTDYBEomI0SZITXI
+```
+
+## 🔑 Password
+
+```text
+OQxXZjELndr90zuhOTDYBEomI0SZITXI
+```
+
+## 🧪 Additional Command
+
+I also ran:
+
+```bash
+diff passwords.new passwords.old | cat
+```
+
+This produced the same output.
+
+This happens because the pipe sends the output of `diff` to `cat`, and `cat` simply displays that output.
+
+Therefore, in this case:
+
+```bash
+diff passwords.new passwords.old
+```
+
+and:
+
+```bash
+diff passwords.new passwords.old | cat
+```
+
+produce the same visible result.
+
+Using `| cat` is unnecessary here because `diff` already prints its output directly to the terminal.
+
+## 🧠 What I Learned
+
+- `diff` is used to compare the contents of two files.
+- The order of the files in the `diff` command is important.
+- `<` represents a line from the first file.
+- `>` represents a line from the second file.
+- `42c42` indicates that line 42 was changed.
+- Piping the output of `diff` to `cat` does not change the output in this situation.
+- Comparing files with command-line tools is much faster than manually checking every line.
+
+---
+
+## 📌 Key Takeaway
+
+The order of files in the `diff` command matters.
+
+I used:
+
+```bash
+diff passwords.new passwords.old
+```
+
+Because `passwords.new` was the first file, the line beginning with `<` belonged to `passwords.new`.
+
+The password was:
+
+```text
+OQxXZjELndr90zuhOTDYBEomI0SZITXI
+```
+
+# Level 18 → 19
+
+## 🎯 Objective
+
+The password for the next level is stored in a file named:
+
+```text
+readme
+```
+
+in the home directory.
+
+However, the `.bashrc` file had been modified to immediately log the user out when logging in through SSH.
+
+Therefore, a normal interactive SSH login could not be used.
+
+## 🔎 Understanding the Problem
+
+Normally, I would connect to the Bandit server using SSH:
+
+```bash
+ssh -4 bandit18@bandit.labs.overthewire.org -p 2220
+```
+
+However, when starting an interactive shell, the shell configuration could cause `.bashrc` to be executed.
+
+Since `.bashrc` had been modified to log the user out, logging in normally would immediately terminate the session.
+
+The challenge was therefore to retrieve the contents of `readme` without starting a normal interactive session.
+
+## 💡 Solution
+
+SSH allows a command to be executed directly on the remote server.
+
+Instead of logging in and then manually running `cat readme`, I included the command directly in the SSH command:
+
+```bash
+ssh -4 bandit18@bandit.labs.overthewire.org -p 2220 cat readme
+```
+
+This instructed SSH to connect to the server and execute:
+
+```bash
+cat readme
+```
+
+directly.
+
+## 🔍 Command Breakdown
+
+### `ssh`
+
+```bash
+ssh
+```
+
+SSH is used to establish a secure connection to a remote machine.
+
+### `-4`
+
+```bash
+-4
+```
+
+This tells SSH to use IPv4.
+
+### Username and Server
+
+```bash
+bandit18@bandit.labs.overthewire.org
+```
+
+This specifies:
+
+- Username: `bandit18`
+- Server: `bandit.labs.overthewire.org`
+
+### `-p 2220`
+
+```bash
+-p 2220
+```
+
+This specifies the SSH port.
+
+The Bandit SSH service runs on port:
+
+```text
+2220
+```
+
+instead of the default SSH port `22`.
+
+### Remote Command
+
+```bash
+cat readme
+```
+
+This command is executed directly on the remote server.
+
+`cat` reads and displays the contents of the `readme` file.
+
+## 🔑 Password
+
+The command returned the password for **Level 19**:
+
+```text
+KpsOfPkcP7i1FlIExk2QEjyt6dw8dxZI
+```
+
+## 🧠 What I Learned
+
+- `.bashrc` is a shell configuration file that can affect a user's shell session.
+- A modified `.bashrc` can interfere with a normal interactive SSH login.
+- SSH can execute commands directly on a remote server.
+- A remote command can be specified after the SSH connection options.
+- Executing a command directly can avoid the need for an interactive shell session.
+- `cat` can be executed remotely through SSH to display a file.
+
+---
+
+## 📌 Key Takeaway
+
+Instead of starting an interactive SSH session, I executed the required command directly through SSH:
+
+```bash
+ssh -4 bandit18@bandit.labs.overthewire.org -p 2220 cat readme
+```
+
+This connected to the server, executed:
+
+```bash
+cat readme
+```
+
+and returned the password without requiring me to interact with the modified shell configuration.
+
+The password for **Level 19** was:
+
+```text
+KpsOfPkcP7i1FlIExk2QEjyt6dw8dxZI
+```
+
