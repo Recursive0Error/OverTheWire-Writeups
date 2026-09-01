@@ -2248,3 +2248,1033 @@ The password for **Level 19** was:
 KpsOfPkcP7i1FlIExk2QEjyt6dw8dxZI
 ```
 
+# Level 19 → 20
+
+## 🎯 Objective
+
+To gain access to the next level, I needed to use the **SetUID binary** in the home directory.
+
+The password for the next level is stored in the usual location:
+
+```text
+/etc/bandit_pass/bandit20
+```
+
+However, I needed to use the provided SetUID binary to access it.
+
+## 🔎 Initial Attempt
+
+I first tried to read the password file directly:
+
+```bash
+cat /etc/bandit_pass/bandit20
+```
+
+This returned:
+
+```text
+Permission denied
+```
+
+This happened because the `bandit19` user did not have sufficient permissions to read the `bandit20` password file.
+
+## 🔍 Finding the SetUID Binary
+
+I used:
+
+```bash
+ls
+```
+
+to list the files in the home directory.
+
+I found the SetUID binary:
+
+```text
+bandit20-do
+```
+
+I first executed it without arguments as suggested by the challenge:
+
+```bash
+./bandit20-do
+```
+
+This displayed information about how to use the binary.
+
+## 💡 Solution
+
+The SetUID binary allows a command to be executed with the privileges of the user who owns the binary.
+
+I used it to execute the `cat` command:
+
+```bash
+./bandit20-do cat /etc/bandit_pass/bandit20
+```
+
+Here:
+
+- `./bandit20-do` executes the SetUID binary from the current directory.
+- `cat` is the command that I want the binary to execute.
+- `/etc/bandit_pass/bandit20` is the password file I want to read.
+
+This time, the command was successful and returned:
+
+```text
+4pIjcunZ0fK2vmp3IwfG8Vf7VhxD6pOA
+```
+
+## 🔑 Password
+
+```text
+4pIjcunZ0fK2vmp3IwfG8Vf7VhxD6pOA
+```
+
+## 🧠 What I Learned
+
+- Linux uses file permissions to control access to files.
+- `Permission denied` means the current user does not have the required permissions.
+- **SetUID (SUID)** is a Linux permission mechanism that allows an executable to run with the privileges of its owner.
+- `./` is used to execute a program located in the current directory.
+- A SetUID binary can execute commands with the privileges associated with its owner.
+- The command passed to the SetUID binary was:
+
+```bash
+cat /etc/bandit_pass/bandit20
+```
+
+## 📌 Key Takeaway
+
+My first attempt failed because `bandit19` did not have permission to directly read the password file:
+
+```bash
+cat /etc/bandit_pass/bandit20
+```
+
+I then used the provided SetUID binary:
+
+```bash
+./bandit20-do cat /etc/bandit_pass/bandit20
+```
+
+The SetUID binary executed the `cat` command with the required privileges and revealed the password for **Level 20**.
+
+# Level 20 → 21
+
+## 🎯 Objective
+
+There is a **SetUID binary** in the home directory that connects to `localhost` on a port specified as a command-line argument.
+
+The binary then:
+
+1. Connects to the specified port on `localhost`.
+2. Reads a line of text from the connection.
+3. Compares it with the password from the previous level (`bandit20`).
+4. If the password is correct, it sends the password for the next level (`bandit21`) back through the connection.
+
+## 🔎 Understanding the Challenge
+
+The SetUID binary provided in the home directory was:
+
+```text
+suconnect
+```
+
+I needed to provide a port number to it:
+
+```bash
+./suconnect <port>
+```
+
+Since `suconnect` connects to the specified port, I needed to create a service that was listening on that port and would send the current password to it.
+
+## 🌐 Creating a TCP Listener
+
+I used **Netcat (`nc`)** to create a simple TCP listener:
+
+```bash
+echo "4pIjcunZ0fK2vmp3IwfG8Vf7VhxD6pOA" | nc -l -p 12345 &
+```
+
+### 🔍 Command Breakdown
+
+#### `echo`
+
+```bash
+echo "4pIjcunZ0fK2vmp3IwfG8Vf7VhxD6pOA"
+```
+
+`echo` outputs the password from the previous level.
+
+#### Pipe `|`
+
+```bash
+|
+```
+
+The pipe sends the output of `echo` to the input of `nc`.
+
+Therefore, the previous level's password is passed to Netcat.
+
+#### `nc`
+
+```bash
+nc
+```
+
+`nc` stands for **Netcat**, a command-line networking utility that can establish TCP connections and listen for incoming connections.
+
+#### `-l`
+
+```bash
+-l
+```
+
+The `-l` option puts Netcat into **listen mode**.
+
+This makes Netcat wait for an incoming connection.
+
+#### `-p 12345`
+
+```bash
+-p 12345
+```
+
+This tells Netcat to listen on port `12345`.
+
+I chose `12345` as the port for the connection.
+
+#### `&`
+
+```bash
+&
+```
+
+The `&` runs the command in the background.
+
+This allowed me to use the same terminal to execute `suconnect` while the Netcat listener continued running.
+
+## 🔗 Connecting With `suconnect`
+
+After starting the listener, I executed:
+
+```bash
+./suconnect 12345
+```
+
+This caused `suconnect` to connect to:
+
+```text
+localhost:12345
+```
+
+The connection worked as follows:
+
+```text
+             suconnect
+                 │
+                 │ Connects to
+                 ▼
+          localhost:12345
+                 │
+                 ▼
+          Netcat Listener
+                 │
+                 │ Sends password
+                 ▼
+      4pIjcunZ0fK2vmp3IwfG8Vf7VhxD6pOA
+```
+
+## 📤 Program Output
+
+The `suconnect` program first showed the password it received:
+
+```text
+Read: 4pIjcunZ0fK2vmp3IwfG8Vf7VhxD6pOA
+```
+
+It then confirmed that the password matched:
+
+```text
+Password matches, sending next password
+```
+
+Finally, it returned the password for the next level:
+
+```text
+bW9kBv5WC3P4yoDyf12LSdGuNz5ka6hY
+```
+
+The shell also showed that the background Netcat process had finished:
+
+```text
+[1]+  Done
+```
+
+This happened because the Netcat listener exited after completing the connection.
+
+## 🔑 Password
+
+```text
+bW9kBv5WC3P4yoDyf12LSdGuNz5ka6hY
+```
+
+## 🧠 What I Learned
+
+- `nc` (Netcat) can be used to create a TCP listener.
+- `-l` puts Netcat into listening mode.
+- `-p` specifies the port.
+- `&` runs a command in the background.
+- The pipe operator `|` sends the output of one command to another command.
+- A client needs a server/listener to connect to.
+- `suconnect` acts as the client in this challenge.
+- Netcat acts as the server/listener.
+- The client connected to the listener using the specified port.
+- The SetUID binary checked whether the received password matched the current level's password.
+
+## 📌 Key Takeaway
+
+The important part of this level was understanding that **`suconnect` connects to the port rather than listening on it**.
+
+Therefore, I first created a listener using:
+
+```bash
+echo "4pIjcunZ0fK2vmp3IwfG8Vf7VhxD6pOA" | nc -l -p 12345 &
+```
+
+Then I connected to it using:
+
+```bash
+./suconnect 12345
+```
+
+The program confirmed:
+
+```text
+Read: 4pIjcunZ0fK2vmp3IwfG8Vf7VhxD6pOA
+Password matches, sending next password
+```
+
+and returned:
+
+```text
+bW9kBv5WC3P4yoDyf12LSdGuNz5ka6hY
+```
+
+Therefore, the password for **Level 21** was:
+
+```text
+bW9kBv5WC3P4yoDyf12LSdGuNz5ka6hY
+```
+
+# Level 21 → 22
+
+## 🎯 Objective
+
+A program is running automatically at regular intervals using **cron**, the time-based job scheduler.
+
+The challenge instructed me to look inside:
+
+```text
+/etc/cron.d/
+```
+
+and find the configuration that determines which command is being executed.
+
+## 🔎 Finding the Cron Job
+
+I first listed the contents of `/etc/cron.d/`:
+
+```bash
+ls /etc/cron.d/
+```
+
+This displayed:
+
+```text
+behemoth4_cleanup
+clean_tmp
+cronjob_bandit22
+cronjob_bandit23
+cronjob_bandit24
+e2scrub_all
+leviathan5_cleanup
+manpage3_resetpw_job
+otw-tmp-dir
+```
+
+The relevant file for this level was:
+
+```text
+cronjob_bandit22
+```
+
+I then changed into the directory:
+
+```bash
+cd /etc/cron.d/
+```
+
+## 📄 Examining the Cron Configuration
+
+I read the cron configuration using:
+
+```bash
+cat cronjob_bandit22
+```
+
+It contained:
+
+```text
+@reboot bandit22 /usr/bin/cronjob_bandit22.sh &> /dev/null
+* * * * * bandit22 /usr/bin/cronjob_bandit22.sh &> /dev/null
+```
+
+The important entry was:
+
+```text
+* * * * * bandit22 /usr/bin/cronjob_bandit22.sh &> /dev/null
+```
+
+### 🔍 Understanding the Cron Entry
+
+The five fields:
+
+```text
+* * * * *
+```
+
+represent:
+
+```text
+minute hour day-of-month month day-of-week
+```
+
+Using `*` in all five positions means the command runs **every minute**.
+
+The next field:
+
+```text
+bandit22
+```
+
+specifies the user that the cron job runs as.
+
+Therefore, the script is executed every minute as the `bandit22` user.
+
+The command being executed is:
+
+```text
+/usr/bin/cronjob_bandit22.sh
+```
+
+The following:
+
+```text
+&> /dev/null
+```
+
+redirects both standard output and standard error to `/dev/null`, so the cron job does not display output.
+
+## 🔍 Examining the Script
+
+I then read the script:
+
+```bash
+cat /usr/bin/cronjob_bandit22.sh
+```
+
+The script contained:
+
+```bash
+#!/bin/bash
+chmod 644 /tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv
+cat /etc/bandit_pass/bandit22 > /tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv
+```
+
+### Line 1: `#!/bin/bash`
+
+```bash
+#!/bin/bash
+```
+
+This is called a **shebang**.
+
+It tells the operating system that the script should be executed using the Bash interpreter located at:
+
+```text
+/bin/bash
+```
+
+### Line 2: `chmod 644`
+
+```bash
+chmod 644 /tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv
+```
+
+`chmod` is used to change file permissions.
+
+The permission:
+
+```text
+644
+```
+
+means:
+
+```text
+Owner  → read + write
+Group  → read
+Others → read
+```
+
+Since the file is made readable by others, the `bandit21` user can read it.
+
+### Line 3: Password Redirection
+
+```bash
+cat /etc/bandit_pass/bandit22 > /tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv
+```
+
+This command reads the password file:
+
+```text
+/etc/bandit_pass/bandit22
+```
+
+The cron job is running as `bandit22`, so the script has permission to read that file.
+
+The `>` symbol is the **output redirection operator**.
+
+Instead of displaying the password on the terminal, it redirects the output into:
+
+```text
+/tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv
+```
+
+The overall process is therefore:
+
+```text
+Cron
+  │
+  │ Every minute
+  ▼
+cronjob_bandit22.sh
+  │
+  │ Runs as bandit22
+  ▼
+Reads /etc/bandit_pass/bandit22
+  │
+  ▼
+Writes password to /tmp/...
+  │
+  ▼
+chmod 644 makes the file readable
+  │
+  ▼
+I can read the file
+```
+
+## 🔑 Retrieving the Password
+
+Since the cron job runs every minute, it created the temporary file and placed the password inside it.
+
+I read the file using:
+
+```bash
+cat /tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv
+```
+
+This returned:
+
+```text
+RYVux2rHEm9tiXHmLFzuR7Vhx6AZQMEz
+```
+
+## 🔑 Password
+
+```text
+RYVux2rHEm9tiXHmLFzuR7Vhx6AZQMEz
+```
+
+## 🧠 What I Learned
+
+- **Cron** is used to schedule commands and scripts to run automatically.
+- Cron configuration files can be found in `/etc/cron.d/`.
+- The five `*` fields in a cron expression represent minute, hour, day of month, month, and day of week.
+- `* * * * *` means the command runs every minute.
+- The username after the cron schedule specifies which user executes the command.
+- `chmod 644` makes a file readable by the owner, group, and other users while only the owner can write to it.
+- `>` redirects command output into a file.
+- `/dev/null` can be used to discard command output.
+- A scheduled task running with higher privileges can create files that another user may be able to read.
+
+---
+
+## 📌 Key Takeaway
+
+The main idea of this level was to follow the chain:
+
+```text
+/etc/cron.d/cronjob_bandit22
+        ↓
+/usr/bin/cronjob_bandit22.sh
+        ↓
+Runs every minute as bandit22
+        ↓
+Reads /etc/bandit_pass/bandit22
+        ↓
+Writes password to /tmp/...
+        ↓
+chmod 644
+        ↓
+Password becomes readable
+```
+
+The important commands I used were:
+
+```bash
+ls /etc/cron.d/
+```
+
+```bash
+cat /etc/cron.d/cronjob_bandit22
+```
+
+```bash
+cat /usr/bin/cronjob_bandit22.sh
+```
+
+and finally:
+
+```bash
+cat /tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv
+```
+
+which gave me the password for **Level 22**:
+
+```text
+RYVux2rHEm9tiXHmLFzuR7Vhx6AZQMEz
+```
+
+# Level 22 → 23
+
+## 🎯 Objective
+
+A program is running automatically at regular intervals using **cron**, the time-based job scheduler.
+
+The challenge instructed me to look in:
+
+```text
+/etc/cron.d/
+```
+
+and find out what command is being executed.
+
+The goal was to understand the script and retrieve the password for **Level 23**.
+
+## 🔎 Finding the Cron Job
+
+I first checked the contents of my home directory:
+
+```bash
+ls
+```
+
+There were no files of interest, so I moved to the cron configuration directory:
+
+```bash
+cd /etc/cron.d/
+```
+
+I then listed the files:
+
+```bash
+ls
+```
+
+Among the files, I found:
+
+```text
+cronjob_bandit23
+```
+
+I read its contents:
+
+```bash
+cat cronjob_bandit23
+```
+
+The output was:
+
+```text
+@reboot bandit23 /usr/bin/cronjob_bandit23.sh  &> /dev/null
+* * * * * bandit23 /usr/bin/cronjob_bandit23.sh  &> /dev/null
+```
+
+## 🔍 Understanding the Cron Job
+
+The important line was:
+
+```text
+* * * * * bandit23 /usr/bin/cronjob_bandit23.sh &> /dev/null
+```
+
+The five `*` characters mean that the command runs every minute:
+
+```text
+* * * * *
+│ │ │ │ │
+│ │ │ │ └── Day of week
+│ │ │ └──── Month
+│ │ └────── Day of month
+│ └──────── Hour
+└────────── Minute
+```
+
+The username:
+
+```text
+bandit23
+```
+
+means that the script is executed as the **bandit23** user.
+
+The script being executed is:
+
+```text
+/usr/bin/cronjob_bandit23.sh
+```
+
+## 📄 Reading the Script
+
+I initially tried:
+
+```bash
+cat cronjob_bandit23.sh
+```
+
+but this returned:
+
+```text
+cat: cronjob_bandit23.sh: No such file or directory
+```
+
+This was because I was currently inside:
+
+```text
+/etc/cron.d/
+```
+
+while the script was actually located in:
+
+```text
+/usr/bin/
+```
+
+I therefore used the full path:
+
+```bash
+cat /usr/bin/cronjob_bandit23.sh
+```
+
+The script contained:
+
+```bash
+#!/bin/bash
+
+myname=$(whoami)
+mytarget=$(echo I am user $myname | md5sum | cut -d ' ' -f 1)
+
+echo "Copying passwordfile /etc/bandit_pass/$myname to /tmp/$mytarget"
+
+cat /etc/bandit_pass/$myname > /tmp/$mytarget
+```
+
+## 🔍 Understanding the Script
+
+### Line 1
+
+```bash
+#!/bin/bash
+```
+
+This is the **shebang** and tells the system to execute the script using Bash.
+
+### Line 2
+
+```bash
+myname=$(whoami)
+```
+
+`whoami` prints the username of the user currently running the script.
+
+The output is stored in the variable:
+
+```text
+myname
+```
+
+This is important because the cron job runs the script as:
+
+```text
+bandit23
+```
+
+Therefore, when cron executes the script:
+
+```bash
+myname=bandit23
+```
+
+### Line 3
+
+```bash
+mytarget=$(echo I am user $myname | md5sum | cut -d ' ' -f 1)
+```
+
+This line generates the name of the temporary file.
+
+First:
+
+```bash
+echo I am user $myname
+```
+
+When the script runs as `bandit23`, this becomes:
+
+```bash
+echo I am user bandit23
+```
+
+The output is then piped into:
+
+```bash
+md5sum
+```
+
+which generates an MD5 hash.
+
+Finally:
+
+```bash
+cut -d ' ' -f 1
+```
+
+extracts only the hash and removes the additional information printed by `md5sum`.
+
+For `bandit23`, the resulting filename is:
+
+```text
+7dfc5d0348e965fba8b56a01c1508c98
+```
+
+Therefore:
+
+```text
+mytarget=7dfc5d0348e965fba8b56a01c1508c98
+```
+
+### Line 4
+
+```bash
+echo "Copying passwordfile /etc/bandit_pass/$myname to /tmp/$mytarget"
+```
+
+This prints a debug message showing which password file is being copied and where it is being copied.
+
+### Line 5
+
+```bash
+cat /etc/bandit_pass/$myname > /tmp/$mytarget
+```
+
+This reads the password file corresponding to the current user and redirects its contents into the temporary file.
+
+Since cron executes the script as `bandit23`, the command effectively becomes:
+
+```bash
+cat /etc/bandit_pass/bandit23 > /tmp/7dfc5d0348e965fba8b56a01c1508c98
+```
+
+Therefore, the password for `bandit23` will be stored in:
+
+```text
+/tmp/7dfc5d0348e965fba8b56a01c1508c98
+```
+
+## 🧪 Manually Executing the Script
+
+The challenge suggested executing the script to see its debug information.
+
+I ran:
+
+```bash
+/usr/bin/cronjob_bandit23.sh
+```
+
+I got:
+
+```text
+Copying passwordfile /etc/bandit_pass/bandit22 to /tmp/8169b67bd894ddbb4412f91573b38db3
+```
+
+I then read the generated file:
+
+```bash
+cat /tmp/8169b67bd894ddbb4412f91573b38db3
+```
+
+This returned:
+
+```text
+RYVux2rHEm9tiXHmLFzuR7Vhx6AZQMEz
+```
+
+However, this was **not the new password**.
+
+### Why?
+
+I had manually executed the script while logged in as:
+
+```text
+bandit22
+```
+
+Therefore:
+
+```bash
+whoami
+```
+
+returned:
+
+```text
+bandit22
+```
+
+So the script copied:
+
+```text
+/etc/bandit_pass/bandit22
+```
+
+instead of:
+
+```text
+/etc/bandit_pass/bandit23
+```
+
+The actual cron job runs the script as:
+
+```text
+bandit23
+```
+
+so I needed to calculate the target filename using `bandit23`.
+
+## 🔐 Finding the Correct Temporary File
+
+The script uses:
+
+```bash
+mytarget=$(echo I am user $myname | md5sum | cut -d ' ' -f 1)
+```
+
+Since the cron job runs the script as `bandit23`, I calculated the filename manually:
+
+```bash
+echo I am user bandit23 | md5sum | cut -d ' ' -f 1
+```
+
+This returned:
+
+```text
+8ca319486bfbbc3663ea0fbe81326349
+```
+
+Therefore, the password should be stored in:
+
+```text
+/tmp/8ca319486bfbbc3663ea0fbe81326349
+```
+
+I read the file using:
+
+```bash
+cat /tmp/8ca319486bfbbc3663ea0fbe81326349
+```
+
+This returned:
+
+```text
+gKXDTAXnIz3OBxiPjRZ2uqutUlPZrBsw
+```
+
+## 🔑 Password
+
+```text
+gKXDTAXnIz3OBxiPjRZ2uqutUlPZrBsw
+```
+
+## 🧠 What I Learned
+
+The important part of this level was understanding that the script behaves differently depending on which user executes it.
+
+When I manually ran:
+
+```bash
+/usr/bin/cronjob_bandit23.sh
+```
+
+I was logged in as `bandit22`, so:
+
+```bash
+whoami
+```
+
+returned:
+
+```text
+bandit22
+```
+
+and the script copied the `bandit22` password.
+
+However, the cron configuration specifies:
+
+```text
+* * * * * bandit23 /usr/bin/cronjob_bandit23.sh
+```
+
+so cron executes the script as `bandit23`.
+
+This means:
+
+```bash
+myname=$(whoami)
+```
+
+becomes:
+
+```text
+myname=bandit23
+```
+
+and the script ultimately performs the equivalent of:
+
+```bash
+cat /etc/bandit_pass/bandit23 > /tmp/8ca319486bfbbc3663ea0fbe81326349
+```
+
+I could then read the password with:
+
+```bash
+cat /tmp/8ca319486bfbbc3663ea0fbe81326349
+```
+
+which gave:
+
+```text
+gKXDTAXnIz3OBxiPjRZ2uqutUlPZrBsw
+```
