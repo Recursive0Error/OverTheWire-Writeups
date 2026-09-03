@@ -50,6 +50,8 @@ ssh bandit1@bandit.labs.overthewire.org -p 2220
 - [Level 29 → 30](levels/level-29-30.md)
 - [Level 30 → 31](levels/level-30-31.md)
 - [Level 31 → 32](levels/level-31-32.md)
+- [Level 32 → 33](levels/level-32-33.md)
+- [Level 33 — Final](levels/level-33-final.md)
 
 ## Notes
 
