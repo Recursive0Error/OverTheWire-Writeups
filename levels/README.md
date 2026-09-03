@@ -35,3 +35,4 @@ This folder contains one markdown file per Bandit level transition.
 - [Level 28 → 29](level-28-29.md)
 - [Level 29 → 30](level-29-30.md)
 - [Level 30 → 31](level-30-31.md)
+- [Level 31 → 32](level-31-32.md)
