@@ -39,6 +39,10 @@ Personal writeups documenting how I solved PICO CTF challenges. Each writeup foc
 | Glory of the Garden | Forensics | Easy | Solved | [Writeup](forensics/30-glory-of-the-garden.md) |
 | Disk, disk, sleuth! II | Forensics | Medium | Solved | [Writeup](forensics/33-disk-disk-sleuth-2.md) |
 | Cookie Monster Secret Recipe | Web Exploitation | Easy | Solved | [Writeup](web-exploitation/34-cookie-monster-secret-recipe.md) |
+| Binary Digits | Forensics | Easy | Solved | [Writeup](forensics/35-binary-digits.md) |
+| Riddle Registry | Forensics | Easy | Solved | [Writeup](forensics/36-riddle-registry.md) |
+| Flag in Flame | Forensics | Easy | Solved | [Writeup](forensics/37-flag-in-flame.md) |
+| Corrupted File | Forensics | Easy | Solved | [Writeup](forensics/38-corrupted-file.md) |
 
 ## Writeup Format
 
